@@ -342,37 +342,54 @@
       </div>
     </div>
   </footer>
+<script>
+  // set active nav item (robust for /path, /path/, .html, ./path.html)
+  (function setActiveNav(){
+    // normalize current path
+    let path = location.pathname.toLowerCase();
 
-  <script>
-    const btn = document.getElementById('menuBtn');
-    const panel = document.getElementById('mobilePanel');
-    btn?.addEventListener('click', () => {
-      const open = panel.classList.toggle('show');
-      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    // remove trailing slash
+    if (path.endsWith('/')) path = path.slice(0, -1);
+
+    // take last segment
+    let last = path.split('/').pop() || 'index.html';
+
+    // if no extension, assume .html
+    if (!last.includes('.')) last = last + '.html';
+
+    // handle root
+    if (last === '') last = 'index.html';
+
+    const current = last; // e.g. products.html
+
+    // Clear existing active states
+    document.querySelectorAll('a.active').forEach(a => {
+      a.classList.remove('active');
+      a.removeAttribute('aria-current');
     });
-    document.getElementById('y').textContent = new Date().getFullYear();
-  
-    // set active nav item
-    (function setActiveNav(){
-      const path = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
-      const targets = new Map([
-        ['index.html','ホーム'],
-        ['products.html','商品'],
-        ['services.html','事業内容'],
-        ['company.html','会社概要'],
-        ['privacy.html',''],
-        ['tokushoho.html',''],
-      ]);
-      const current = targets.has(path) ? path : 'index.html';
-      const links = document.querySelectorAll('a[href]');
-      links.forEach(a=>{
-        const href = (a.getAttribute('href')||'').toLowerCase();
-        if(href === current){
-          a.classList.add('active');
-          a.setAttribute('aria-current','page');
-        }
-      });
-    })();
+
+    // Match nav links by their filename (ignoring leading ./ or / and trailing /)
+    const links = document.querySelectorAll('nav a[href], header a[href], a.navlink[href]');
+    links.forEach(a => {
+      let href = (a.getAttribute('href') || '').toLowerCase().trim();
+
+      // ignore anchors and external links
+      if (!href || href.startsWith('#') || href.startsWith('http')) return;
+
+      // normalize href
+      if (href.endsWith('/')) href = href.slice(0, -1);
+      href = href.replace(/^\.\//, '').replace(/^\//, ''); // "./x" or "/x" => "x"
+
+      // if href has no extension, assume .html
+      if (href && !href.includes('.')) href = href + '.html';
+
+      if (href === current) {
+        a.classList.add('active');
+        a.setAttribute('aria-current', 'page');
+      }
+    });
+  })();
 </script>
+
 </body>
 </html>
