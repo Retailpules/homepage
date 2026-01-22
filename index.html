@@ -342,54 +342,55 @@
       </div>
     </div>
   </footer>
-<script>
-  // set active nav item (robust for /path, /path/, .html, ./path.html)
-  (function setActiveNav(){
-    // normalize current path
-    let path = location.pathname.toLowerCase();
 
-    // remove trailing slash
-    if (path.endsWith('/')) path = path.slice(0, -1);
+  <script>
+(function setActiveNav(){
+  // Map routes (no extension) and html files
+  const routeToFile = {
+    "": "index.html",
+    "index": "index.html",
+    "products": "products.html",
+    "services": "services.html",
+    "company": "company.html",
+    "contact": "contact.html",
+    "privacy": "privacy.html",
+    "tokushoho": "tokushoho.html"
+  };
 
-    // take last segment
-    let last = path.split('/').pop() || 'index.html';
+  // normalize path => last segment (no trailing slash)
+  let p = location.pathname.toLowerCase();
+  if (p.endsWith("/")) p = p.slice(0, -1);
+  let last = p.split("/").pop() || "";
+  // if it's already .html keep it, else map route to html
+  let current = last.includes(".") ? last : (routeToFile[last] || "index.html");
 
-    // if no extension, assume .html
-    if (!last.includes('.')) last = last + '.html';
+  // clear old
+  document.querySelectorAll("a.active").forEach(a=>{
+    a.classList.remove("active");
+    a.removeAttribute("aria-current");
+  });
 
-    // handle root
-    if (last === '') last = 'index.html';
+  // match by file name OR by route name
+  const links = document.querySelectorAll("nav a[href], header a[href]");
+  links.forEach(a=>{
+    let href = (a.getAttribute("href")||"").toLowerCase().trim();
+    if (!href || href.startsWith("#") || href.startsWith("http")) return;
 
-    const current = last; // e.g. products.html
+    // normalize href
+    if (href.endsWith("/")) href = href.slice(0, -1);
+    href = href.replace(/^\.\//, "").replace(/^\//, ""); // remove ./ or /
 
-    // Clear existing active states
-    document.querySelectorAll('a.active').forEach(a => {
-      a.classList.remove('active');
-      a.removeAttribute('aria-current');
-    });
+    // support both /products and products.html in href
+    const hrefFile = href.includes(".") ? href : (routeToFile[href] || "");
 
-    // Match nav links by their filename (ignoring leading ./ or / and trailing /)
-    const links = document.querySelectorAll('nav a[href], header a[href], a.navlink[href]');
-    links.forEach(a => {
-      let href = (a.getAttribute('href') || '').toLowerCase().trim();
-
-      // ignore anchors and external links
-      if (!href || href.startsWith('#') || href.startsWith('http')) return;
-
-      // normalize href
-      if (href.endsWith('/')) href = href.slice(0, -1);
-      href = href.replace(/^\.\//, '').replace(/^\//, ''); // "./x" or "/x" => "x"
-
-      // if href has no extension, assume .html
-      if (href && !href.includes('.')) href = href + '.html';
-
-      if (href === current) {
-        a.classList.add('active');
-        a.setAttribute('aria-current', 'page');
-      }
-    });
-  })();
+    if (href === last || hrefFile === current) {
+      a.classList.add("active");
+      a.setAttribute("aria-current","page");
+    }
+  });
+})();
 </script>
+
 
 </body>
 </html>
